@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package shopping.v1;
+
+option go_package = "github.com/gurkanbulca/shopping-list/proto/shopping/v1;shoppingv1";
+
+import "google/protobuf/timestamp.proto";
+import "list.proto";
+import "group.proto";
+import "category.proto";
+
+// SyncService handles offline synchronization
+service SyncService {
+  // Get delta changes since last sync
+  rpc GetDelta(GetDeltaRequest) returns (GetDeltaResponse);
+  
+  // Push local mutations to server
+  rpc PushMutations(PushMutationsRequest) returns (PushMutationsResponse);
+}
+
+// GetDeltaRequest requests changes since last sync
+message GetDeltaRequest {
+  string group_id = 1;       // UUID - filter changes for this group
+  int64 cursor = 2;          // Last sequence number received (0 for first sync)
+  int32 max_changes = 3;     // Maximum number of changes to return (default: 100, max: 500)
+}
+
+// GetDeltaResponse returns changes since cursor
+message GetDeltaResponse {
+  repeated Change changes = 1;
+  int64 next_cursor = 2;     // Next cursor for subsequent requests (0 if no more changes)
+  bool has_more = 3;         // True if more changes available
+}
+
+// PushMutationsRequest pushes local mutations
+message PushMutationsRequest {
+  string group_id = 1;       // UUID
+  repeated Mutation mutations = 2;
+}
+
+// PushMutationsResponse returns results for each mutation
+message PushMutationsResponse {
+  repeated MutationResult results = 1;
+}
+
+// Change represents a single change in delta sync
+message Change {
+  int64 sequence = 1;        // Global change sequence
+  EntityType entity_type = 2;
+  string entity_id = 3;      // UUID
+  ChangeOperation operation = 4;
+  google.protobuf.Timestamp changed_at = 5;
+  
+  // Entity data (only for CREATE/UPDATE operations)
+  oneof entity_data {
+    shopping.v1.List list = 10;
+    shopping.v1.Item item = 11;
+    shopping.v1.Category category = 12;
+    shopping.v1.Group group = 13;
+    shopping.v1.GroupMember group_member = 14;
+  }
+}
+
+// Mutation represents a local mutation to push
+message Mutation {
+  string mutation_id = 1;    // Client-generated UUID for idempotency
+  MutationType type = 2;
+  string entity_type = 3;   // "list", "item", "category", etc.
+  string entity_id = 4;      // UUID (empty for creates)
+  bytes entity_data = 5;     // Serialized entity (JSON or protobuf)
+  int64 expected_version = 6; // For conflict detection (update/delete only)
+}
+
+// MutationResult represents the result of a mutation
+message MutationResult {
+  string mutation_id = 1;    // Echo of client mutation_id
+  bool success = 2;
+  string error_code = 3;     // Empty if success, error code if failed
+  string error_message = 4;  // Human-readable error message
+  string entity_id = 5;      // Created/updated entity ID
+  int64 version = 6;          // New version after mutation
+}
+
+// EntityType defines entity types for sync
+enum EntityType {
+  ENTITY_TYPE_UNSPECIFIED = 0;
+  ENTITY_TYPE_USER = 1;
+  ENTITY_TYPE_GROUP = 2;
+  ENTITY_TYPE_GROUP_MEMBER = 3;
+  ENTITY_TYPE_LIST = 4;
+  ENTITY_TYPE_ITEM = 5;
+  ENTITY_TYPE_CATEGORY = 6;
+}
+
+// ChangeOperation defines change operations
+enum ChangeOperation {
+  CHANGE_OPERATION_UNSPECIFIED = 0;
+  CHANGE_OPERATION_CREATE = 1;
+  CHANGE_OPERATION_UPDATE = 2;
+  CHANGE_OPERATION_DELETE = 3;
+}
+
+// MutationType defines mutation types
+enum MutationType {
+  MUTATION_TYPE_UNSPECIFIED = 0;
+  MUTATION_TYPE_CREATE = 1;
+  MUTATION_TYPE_UPDATE = 2;
+  MUTATION_TYPE_DELETE = 3;
+}
+

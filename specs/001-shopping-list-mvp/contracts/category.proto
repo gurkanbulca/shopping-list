@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package shopping.v1;
+
+option go_package = "github.com/gurkanbulca/shopping-list/proto/shopping/v1;shoppingv1";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+// CategoryService handles category management
+service CategoryService {
+  // Create or update a category (upsert)
+  rpc UpsertCategory(UpsertCategoryRequest) returns (UpsertCategoryResponse);
+  
+  // List categories in a group
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+  
+  // Delete a category
+  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+}
+
+// UpsertCategoryRequest creates or updates a category
+message UpsertCategoryRequest {
+  string group_id = 1;       // UUID
+  string category_id = 2;    // UUID (empty for create, set for update)
+  string name = 3;           // Category name (required)
+  int64 expected_version = 4; // For conflict resolution (update only)
+}
+
+// UpsertCategoryResponse returns the category
+message UpsertCategoryResponse {
+  Category category = 1;
+}
+
+// ListCategoriesRequest lists categories in a group
+message ListCategoriesRequest {
+  string group_id = 1;       // UUID
+  PaginationRequest pagination = 2;
+}
+
+// ListCategoriesResponse returns paginated categories
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+  PaginationResponse pagination = 2;
+}
+
+// DeleteCategoryRequest deletes a category
+message DeleteCategoryRequest {
+  string category_id = 1;    // UUID
+}
+
+// DeleteCategoryResponse confirms deletion
+message DeleteCategoryResponse {
+  // Empty - items retain category_id reference (becomes invalid)
+}
+
+// Category represents an organizational category
+message Category {
+  string id = 1;                    // UUID
+  string group_id = 2;              // UUID
+  string name = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  int64 version = 6;               // For conflict resolution
+}

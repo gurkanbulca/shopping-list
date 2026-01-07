@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package shopping.v1;
+
+option go_package = "github.com/gurkanbulca/shopping-list/proto/shopping/v1;shoppingv1";
+
+import "google/protobuf/timestamp.proto";
+
+// Common message types used across services
+
+// Pagination request
+message PaginationRequest {
+  int32 page_size = 1;      // Number of items per page (default: 20, max: 100)
+  string page_token = 2;     // Token for next page (from previous response)
+}
+
+// Pagination response
+message PaginationResponse {
+  string next_page_token = 1; // Token for next page (empty if last page)
+  int32 total_count = 2;      // Total number of items (optional, -1 if not provided)
+}
+
+// Standard error details (used with google.rpc.Status)
+message ErrorDetails {
+  string code = 1;           // Application-specific error code
+  string message = 2;         // Human-readable error message
+  map<string, string> metadata = 3; // Additional error context
+}

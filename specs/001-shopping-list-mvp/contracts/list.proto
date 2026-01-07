@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package shopping.v1;
+
+option go_package = "github.com/gurkanbulca/shopping-list/proto/shopping/v1;shoppingv1";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+// ListService handles shopping lists and items
+service ListService {
+  // Create a new shopping list
+  rpc CreateList(CreateListRequest) returns (CreateListResponse);
+  
+  // List shopping lists in a group
+  rpc ListLists(ListListsRequest) returns (ListListsResponse);
+  
+  // Update list details
+  rpc UpdateList(UpdateListRequest) returns (UpdateListResponse);
+  
+  // Archive a list
+  rpc ArchiveList(ArchiveListRequest) returns (ArchiveListResponse);
+  
+  // Add an item to a list
+  rpc AddItem(AddItemRequest) returns (AddItemResponse);
+  
+  // Update an item
+  rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse);
+  
+  // Delete an item
+  rpc DeleteItem(DeleteItemRequest) returns (DeleteItemResponse);
+  
+  // Toggle item purchased status
+  rpc TogglePurchased(TogglePurchasedRequest) returns (TogglePurchasedResponse);
+  
+  // Reorder items (batch update sort_order)
+  rpc ReorderItems(ReorderItemsRequest) returns (ReorderItemsResponse);
+}
+
+// CreateListRequest creates a new shopping list
+message CreateListRequest {
+  string group_id = 1;       // UUID
+  string name = 2;           // List name (required)
+  string description = 3;   // Optional description
+}
+
+// CreateListResponse returns the created list
+message CreateListResponse {
+  List list = 1;
+}
+
+// ListListsRequest lists shopping lists in a group
+message ListListsRequest {
+  string group_id = 1;       // UUID
+  bool include_archived = 2; // Include archived lists (default: false)
+  PaginationRequest pagination = 3;
+}
+
+// ListListsResponse returns paginated lists
+message ListListsResponse {
+  repeated List lists = 1;
+  PaginationResponse pagination = 2;
+}
+
+// UpdateListRequest updates list details
+message UpdateListRequest {
+  string list_id = 1;        // UUID
+  string name = 2;           // Optional: new name
+  string description = 3;   // Optional: new description
+  int64 expected_version = 4; // For conflict resolution
+}
+
+// UpdateListResponse returns updated list
+message UpdateListResponse {
+  List list = 1;
+}
+
+// ArchiveListRequest archives a list
+message ArchiveListRequest {
+  string list_id = 1;        // UUID
+  bool archive = 2;          // true to archive, false to unarchive
+}
+
+// ArchiveListResponse confirms archiving
+message ArchiveListResponse {
+  List list = 1;
+}
+
+// AddItemRequest adds an item to a list
+message AddItemRequest {
+  string list_id = 1;        // UUID
+  string name = 2;           // Item name (required)
+  ItemPriority priority = 3; // Priority (default: MEDIUM)
+  string category_id = 4;    // Optional category UUID
+  string quantity = 5;       // Optional quantity (e.g., "2", "1kg")
+  string notes = 6;          // Optional notes
+  int32 sort_order = 7;      // Optional sort order (default: append to end)
+}
+
+// AddItemResponse returns the created item
+message AddItemResponse {
+  Item item = 1;
+}
+
+// UpdateItemRequest updates an item
+message UpdateItemRequest {
+  string item_id = 1;        // UUID
+  string name = 2;           // Optional: new name
+  ItemPriority priority = 3; // Optional: new priority
+  string category_id = 4;    // Optional: new category (empty string to clear)
+  string quantity = 5;       // Optional: new quantity
+  string notes = 6;          // Optional: new notes
+  int64 expected_version = 7; // For conflict resolution
+}
+
+// UpdateItemResponse returns updated item
+message UpdateItemResponse {
+  Item item = 1;
+}
+
+// DeleteItemRequest deletes an item
+message DeleteItemRequest {
+  string item_id = 1;        // UUID
+}
+
+// DeleteItemResponse confirms deletion
+message DeleteItemResponse {
+  // Empty
+}
+
+// TogglePurchasedRequest toggles item purchased status
+message TogglePurchasedRequest {
+  string item_id = 1;        // UUID
+  bool is_purchased = 2;     // New purchased status
+  int64 expected_version = 3; // For conflict resolution
+}
+
+// TogglePurchasedResponse returns updated item
+message TogglePurchasedResponse {
+  Item item = 1;
+}
+
+// ReorderItemsRequest reorders items in a list
+message ReorderItemsRequest {
+  string list_id = 1;        // UUID
+  repeated string item_ids = 2; // Complete ordered list of item UUIDs
+}
+
+// ReorderItemsResponse confirms reordering
+message ReorderItemsResponse {
+  repeated Item items = 1;   // Updated items with new sort_order
+}
+
+// List represents a shopping list
+message List {
+  string id = 1;                    // UUID
+  string group_id = 2;              // UUID
+  string name = 3;
+  string description = 4;
+  bool is_archived = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  int64 version = 8;               // For conflict resolution
+}
+
+// Item represents a product/item in a shopping list
+message Item {
+  string id = 1;                    // UUID
+  string list_id = 2;              // UUID
+  string category_id = 3;          // UUID (nullable, empty string if none)
+  string name = 4;
+  ItemPriority priority = 5;
+  int32 sort_order = 6;            // Manual ordering
+  bool is_purchased = 7;
+  string quantity = 8;             // Optional (e.g., "2", "1kg")
+  string notes = 9;                // Optional
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  int64 version = 12;              // For conflict resolution
+}
+
+// ItemPriority defines item priority levels
+enum ItemPriority {
+  ITEM_PRIORITY_UNSPECIFIED = 0;
+  ITEM_PRIORITY_LOW = 1;
+  ITEM_PRIORITY_MEDIUM = 2;
+  ITEM_PRIORITY_HIGH = 3;
+  ITEM_PRIORITY_URGENT = 4;
+}

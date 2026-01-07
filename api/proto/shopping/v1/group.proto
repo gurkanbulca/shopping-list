@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package shopping.v1;
+
+option go_package = "github.com/gurkanbulca/shopping-list/proto/shopping/v1;shoppingv1";
+
+import "google/protobuf/timestamp.proto";
+import "shopping/v1/common.proto";
+import "shopping/v1/auth.proto";
+
+// GroupService handles group creation and membership management
+service GroupService {
+  // Create a new group (caller becomes owner)
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  
+  // List groups the current user is a member of
+  rpc ListMyGroups(ListMyGroupsRequest) returns (ListMyGroupsResponse);
+  
+  // Invite a user to join a group
+  rpc InviteMember(InviteMemberRequest) returns (InviteMemberResponse);
+  
+  // Accept a group invitation
+  rpc AcceptInvite(AcceptInviteRequest) returns (AcceptInviteResponse);
+  
+  // List members of a group
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse);
+  
+  // Update a member's role (owner/admin only)
+  rpc UpdateMemberRole(UpdateMemberRoleRequest) returns (UpdateMemberRoleResponse);
+}
+
+// CreateGroupRequest creates a new group
+message CreateGroupRequest {
+  string name = 1;           // Group name (required)
+  string description = 2;    // Optional description
+}
+
+// CreateGroupResponse returns the created group
+message CreateGroupResponse {
+  Group group = 1;
+}
+
+// ListMyGroupsRequest lists user's groups
+message ListMyGroupsRequest {
+  PaginationRequest pagination = 1;
+}
+
+// ListMyGroupsResponse returns paginated groups
+message ListMyGroupsResponse {
+  repeated Group groups = 1;
+  PaginationResponse pagination = 2;
+}
+
+// InviteMemberRequest invites a user to a group
+message InviteMemberRequest {
+  string group_id = 1;       // UUID
+  string email = 2;          // Email of user to invite (or phone)
+  string phone = 3;          // Alternative identifier
+  MemberRole role = 4;       // Role to assign (OWNER not allowed)
+}
+
+// InviteMemberResponse confirms invitation
+message InviteMemberResponse {
+  GroupMember member = 1;   // Created GroupMember with status=INVITED
+}
+
+// AcceptInviteRequest accepts a group invitation
+message AcceptInviteRequest {
+  string group_id = 1;       // UUID
+  string invite_id = 2;      // Optional invite ID (if using invites table)
+}
+
+// AcceptInviteResponse confirms acceptance
+message AcceptInviteResponse {
+  GroupMember member = 1;   // Updated GroupMember with status=ACTIVE
+}
+
+// ListMembersRequest lists group members
+message ListMembersRequest {
+  string group_id = 1;       // UUID
+  PaginationRequest pagination = 2;
+}
+
+// ListMembersResponse returns paginated members
+message ListMembersResponse {
+  repeated GroupMember members = 1;
+  PaginationResponse pagination = 2;
+}
+
+// UpdateMemberRoleRequest updates a member's role
+message UpdateMemberRoleRequest {
+  string group_id = 1;       // UUID
+  string user_id = 2;        // UUID of member to update
+  MemberRole role = 3;       // New role (OWNER can only be one per group)
+}
+
+// UpdateMemberRoleResponse confirms role update
+message UpdateMemberRoleResponse {
+  GroupMember member = 1;
+}
+
+// Group represents a tenant boundary
+message Group {
+  string id = 1;                    // UUID
+  string name = 2;
+  string description = 3;
+  string owner_id = 4;              // UUID of owner
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  int64 version = 7;                // For conflict resolution
+}
+
+// GroupMember represents a user's membership in a group
+message GroupMember {
+  string id = 1;                    // UUID
+  string group_id = 2;              // UUID
+  string user_id = 3;               // UUID
+  MemberRole role = 4;
+  MemberStatus status = 5;
+  string invited_by = 6;           // UUID (nullable)
+  google.protobuf.Timestamp invited_at = 7;
+  google.protobuf.Timestamp accepted_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  int64 version = 11;
+  
+  // Optional: include user details
+  User user = 12;
+}
+
+// MemberRole defines group member roles
+enum MemberRole {
+  MEMBER_ROLE_UNSPECIFIED = 0;
+  MEMBER_ROLE_OWNER = 1;
+  MEMBER_ROLE_ADMIN = 2;
+  MEMBER_ROLE_MEMBER = 3;
+}
+
+// MemberStatus defines membership status
+enum MemberStatus {
+  MEMBER_STATUS_UNSPECIFIED = 0;
+  MEMBER_STATUS_ACTIVE = 1;
+  MEMBER_STATUS_INVITED = 2;
+}

@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package shopping.v1;
+
+option go_package = "github.com/gurkanbulca/shopping-list/proto/shopping/v1;shoppingv1";
+
+import "google/protobuf/timestamp.proto";
+
+// AuthService handles user authentication and session management
+service AuthService {
+  // Register a new user account
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  
+  // Login with credentials
+  rpc Login(LoginRequest) returns (LoginResponse);
+  
+  // Refresh access token using refresh token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  
+  // Get current user profile
+  rpc GetMe(GetMeRequest) returns (GetMeResponse);
+}
+
+// RegisterRequest registers a new user
+message RegisterRequest {
+  string email = 1;          // Email address (or phone number)
+  string phone = 2;          // Phone number (alternative to email)
+  string password = 3;       // Plain text password (will be hashed)
+  string name = 4;           // Optional display name
+}
+
+// RegisterResponse returns tokens after registration
+message RegisterResponse {
+  string access_token = 1;   // JWT access token
+  string refresh_token = 2;  // Refresh token
+  User user = 3;             // User profile
+}
+
+// LoginRequest authenticates a user
+message LoginRequest {
+  string email = 1;          // Email or phone
+  string phone = 2;          // Alternative identifier
+  string password = 3;       // Plain text password
+}
+
+// LoginResponse returns tokens after login
+message LoginResponse {
+  string access_token = 1;   // JWT access token
+  string refresh_token = 2;  // Refresh token
+  User user = 3;             // User profile
+}
+
+// RefreshTokenRequest refreshes an access token
+message RefreshTokenRequest {
+  string refresh_token = 1;  // Refresh token from previous login/register
+}
+
+// RefreshTokenResponse returns new tokens
+message RefreshTokenResponse {
+  string access_token = 1;   // New JWT access token
+  string refresh_token = 2;   // New refresh token (may be same or rotated)
+}
+
+// GetMeRequest gets current user profile
+message GetMeRequest {
+  // Empty - user ID from auth context
+}
+
+// GetMeResponse returns current user profile
+message GetMeResponse {
+  User user = 1;
+}
+
+// User represents a user account
+message User {
+  string id = 1;                    // UUID
+  string email = 2;                 // Email address (if provided)
+  string phone = 3;                 // Phone number (if provided)
+  string name = 4;                  // Display name
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
