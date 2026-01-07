@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/auth"
+	"github.com/gurkanbulca/shopping-list/api/internal/domain/category"
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/group"
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/list"
 	"github.com/gurkanbulca/shopping-list/api/pkg/validation"
@@ -111,6 +112,24 @@ func ToGRPCError(err error) error {
 
 	case errors.Is(err, list.ErrListArchived):
 		return status.Error(codes.FailedPrecondition, "cannot modify archived list")
+	}
+
+	// Category domain errors
+	switch {
+	case errors.Is(err, category.ErrCategoryNotFound):
+		return status.Error(codes.NotFound, "category not found")
+
+	case errors.Is(err, category.ErrDuplicateCategoryName):
+		return status.Error(codes.AlreadyExists, "category name already exists in this group")
+
+	case errors.Is(err, category.ErrVersionMismatch):
+		return status.Error(codes.FailedPrecondition, "version mismatch - category was modified by another user")
+
+	case errors.Is(err, category.ErrNotGroupMember):
+		return status.Error(codes.PermissionDenied, "user is not a member of this group")
+
+	case errors.Is(err, category.ErrInvalidCategoryName):
+		return status.Error(codes.InvalidArgument, "category name must be 1-50 characters")
 	}
 
 	// Validation errors

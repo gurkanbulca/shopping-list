@@ -211,25 +211,25 @@
 
 ### Implementation for User Story 4
 
-- [ ] T129 [P] [US4] Implement Category domain model in api/internal/domain/category/category.go
-- [ ] T130 [US4] Implement CategoryRepository interface methods in api/internal/storage/repositories/category_repo.go
-- [ ] T131 [US4] Implement CategoryRepository PostgreSQL implementation in api/internal/storage/postgres/category_repo.go
-- [ ] T132 [US4] Create SQL queries for category operations in api/internal/storage/postgres/queries/category.sql (if using sqlc)
-- [ ] T133 [US4] Implement unique category name constraint per group in api/internal/storage/postgres/queries/category.sql
-- [ ] T134 [US4] Implement CategoryService domain logic in api/internal/domain/category/service.go
-- [ ] T135 [US4] Implement UpsertCategory use case in api/internal/domain/category/upsert_category.go
-- [ ] T136 [US4] Implement ListCategories use case with pagination in api/internal/domain/category/list_categories.go
-- [ ] T137 [US4] Implement DeleteCategory use case (soft delete - items retain reference) in api/internal/domain/category/delete_category.go
-- [ ] T138 [US4] Implement CategoryService gRPC handler in api/internal/transport/grpc/category_handler.go
-- [ ] T139 [US4] Implement UpsertCategory RPC handler in api/internal/transport/grpc/category_handler.go
-- [ ] T140 [US4] Implement ListCategories RPC handler with pagination in api/internal/transport/grpc/category_handler.go
-- [ ] T141 [US4] Implement DeleteCategory RPC handler in api/internal/transport/grpc/category_handler.go
-- [ ] T142 [US4] Register CategoryService with gRPC server in api/cmd/server/main.go
-- [ ] T143 [US4] Update ItemRepository to support category_id assignment in api/internal/storage/postgres/item_repo.go
-- [ ] T144 [US4] Add authorization checks (verify user is group member) in api/internal/transport/grpc/category_handler.go
-- [ ] T145 [US4] Add input validation for category operations in api/pkg/validation/category.go
-- [ ] T146 [US4] Add error handling for duplicate category names in api/internal/domain/category/upsert_category.go
-- [ ] T147 [US4] Add logging for category operations in api/internal/domain/category/service.go
+- [x] T129 [P] [US4] Implement Category domain model in api/internal/domain/category/category.go
+- [x] T130 [US4] Implement CategoryRepository interface methods in api/internal/storage/repositories/category_repo.go
+- [x] T131 [US4] Implement CategoryRepository PostgreSQL implementation in api/internal/storage/postgres/category_repo.go
+- [x] T132 [US4] Create SQL queries for category operations in api/internal/storage/postgres/queries/category.sql (if using sqlc)
+- [x] T133 [US4] Implement unique category name constraint per group in api/internal/storage/postgres/queries/category.sql
+- [x] T134 [US4] Implement CategoryService domain logic in api/internal/domain/category/service.go
+- [x] T135 [US4] Implement UpsertCategory use case in api/internal/domain/category/upsert_category.go
+- [x] T136 [US4] Implement ListCategories use case with pagination in api/internal/domain/category/list_categories.go
+- [x] T137 [US4] Implement DeleteCategory use case (soft delete - items retain reference) in api/internal/domain/category/delete_category.go
+- [x] T138 [US4] Implement CategoryService gRPC handler in api/internal/transport/grpc/category_handler.go
+- [x] T139 [US4] Implement UpsertCategory RPC handler in api/internal/transport/grpc/category_handler.go
+- [x] T140 [US4] Implement ListCategories RPC handler with pagination in api/internal/transport/grpc/category_handler.go
+- [x] T141 [US4] Implement DeleteCategory RPC handler in api/internal/transport/grpc/category_handler.go
+- [x] T142 [US4] Register CategoryService with gRPC server in api/cmd/server/main.go
+- [x] T143 [US4] Update ItemRepository to support category_id assignment in api/internal/storage/postgres/item_repo.go
+- [x] T144 [US4] Add authorization checks (verify user is group member) in api/internal/transport/grpc/category_handler.go
+- [x] T145 [US4] Add input validation for category operations in api/pkg/validation/category.go
+- [x] T146 [US4] Add error handling for duplicate category names in api/internal/domain/category/upsert_category.go
+- [x] T147 [US4] Add logging for category operations in api/internal/domain/category/service.go
 
 **Checkpoint**: At this point, User Stories 1, 2, 3, AND 4 should all work independently. Users can manage categories for better organization.
 

@@ -309,6 +309,137 @@ echo -e "${GREEN}USER STORY 3: PASSED${NC}"
 echo ""
 
 echo "=========================================="
+echo "USER STORY 4: Category Management"
+echo "=========================================="
+echo ""
+
+# First, create a new list for category testing (since previous list is archived)
+info "4.0 Creating a new list for category tests"
+LIST_NAME2="Category Test List ${TIMESTAMP}"
+CREATE_LIST2_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"groupId\": \"$GROUP_ID\",
+    \"name\": \"$LIST_NAME2\",
+    \"description\": \"List for category testing\"
+  }" $API_HOST shopping.v1.ListService/CreateList 2>&1) || fail "CreateList failed: $CREATE_LIST2_RESPONSE"
+
+LIST2_ID=$(echo "$CREATE_LIST2_RESPONSE" | grep -o '"id": "[^"]*"' | head -1 | cut -d'"' -f4)
+success "New list created for testing"
+
+# Test 4.1: Create a category
+info "4.1 Creating a category: Dairy"
+CREATE_CAT1_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"groupId\": \"$GROUP_ID\",
+    \"name\": \"Dairy\"
+  }" $API_HOST shopping.v1.CategoryService/UpsertCategory 2>&1) || fail "UpsertCategory (create) failed: $CREATE_CAT1_RESPONSE"
+
+CATEGORY1_ID=$(echo "$CREATE_CAT1_RESPONSE" | grep -o '"id": "[^"]*"' | head -1 | cut -d'"' -f4)
+if [ -z "$CATEGORY1_ID" ]; then
+  fail "No category ID in response"
+fi
+success "Category created: Dairy (ID: $CATEGORY1_ID)"
+
+# Test 4.2: Create another category
+info "4.2 Creating another category: Produce"
+CREATE_CAT2_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"groupId\": \"$GROUP_ID\",
+    \"name\": \"Produce\"
+  }" $API_HOST shopping.v1.CategoryService/UpsertCategory 2>&1) || fail "UpsertCategory (create) failed: $CREATE_CAT2_RESPONSE"
+
+CATEGORY2_ID=$(echo "$CREATE_CAT2_RESPONSE" | grep -o '"id": "[^"]*"' | head -1 | cut -d'"' -f4)
+success "Category created: Produce (ID: $CATEGORY2_ID)"
+
+# Test 4.3: List categories
+info "4.3 Listing categories in group"
+LIST_CATS_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"groupId\": \"$GROUP_ID\",
+    \"pagination\": {\"pageSize\": 10}
+  }" $API_HOST shopping.v1.CategoryService/ListCategories 2>&1) || fail "ListCategories failed: $LIST_CATS_RESPONSE"
+
+if ! echo "$LIST_CATS_RESPONSE" | grep -q "Dairy"; then
+  fail "Dairy category not in list"
+fi
+if ! echo "$LIST_CATS_RESPONSE" | grep -q "Produce"; then
+  fail "Produce category not in list"
+fi
+success "Categories listed (Dairy, Produce found)"
+
+# Test 4.4: Update a category
+info "4.4 Updating category: Dairy -> Dairy Products"
+UPDATE_CAT_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"groupId\": \"$GROUP_ID\",
+    \"categoryId\": \"$CATEGORY1_ID\",
+    \"name\": \"Dairy Products\",
+    \"expectedVersion\": 1
+  }" $API_HOST shopping.v1.CategoryService/UpsertCategory 2>&1) || fail "UpsertCategory (update) failed: $UPDATE_CAT_RESPONSE"
+
+if ! echo "$UPDATE_CAT_RESPONSE" | grep -q "Dairy Products"; then
+  fail "Category name not updated"
+fi
+success "Category updated: Dairy -> Dairy Products"
+
+# Test 4.5: Add item with category
+info "4.5 Adding item with category assignment"
+ADD_CAT_ITEM_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"listId\": \"$LIST2_ID\",
+    \"name\": \"Cheese\",
+    \"priority\": \"ITEM_PRIORITY_MEDIUM\",
+    \"categoryId\": \"$CATEGORY1_ID\",
+    \"quantity\": \"1 block\"
+  }" $API_HOST shopping.v1.ListService/AddItem 2>&1) || fail "AddItem with category failed: $ADD_CAT_ITEM_RESPONSE"
+
+CAT_ITEM_ID=$(echo "$ADD_CAT_ITEM_RESPONSE" | grep -o '"id": "[^"]*"' | head -1 | cut -d'"' -f4)
+if ! echo "$ADD_CAT_ITEM_RESPONSE" | grep -q "$CATEGORY1_ID"; then
+  fail "Item not assigned to category"
+fi
+success "Item added with category: Cheese (Dairy Products)"
+
+# Test 4.6: Test duplicate category name prevention
+info "4.6 Testing duplicate category name prevention"
+DUP_CAT_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"groupId\": \"$GROUP_ID\",
+    \"name\": \"Dairy Products\"
+  }" $API_HOST shopping.v1.CategoryService/UpsertCategory 2>&1)
+
+if echo "$DUP_CAT_RESPONSE" | grep -q "AlreadyExists"; then
+  success "Duplicate category name correctly rejected"
+else
+  fail "Duplicate category should have been rejected: $DUP_CAT_RESPONSE"
+fi
+
+# Test 4.7: Delete a category
+info "4.7 Deleting category: Produce"
+DELETE_CAT_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"categoryId\": \"$CATEGORY2_ID\"
+  }" $API_HOST shopping.v1.CategoryService/DeleteCategory 2>&1) || fail "DeleteCategory failed: $DELETE_CAT_RESPONSE"
+
+success "Category deleted: Produce"
+
+# Verify category is deleted
+info "4.8 Verifying category deletion"
+LIST_CATS2_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
+  -d "{
+    \"groupId\": \"$GROUP_ID\",
+    \"pagination\": {\"pageSize\": 10}
+  }" $API_HOST shopping.v1.CategoryService/ListCategories 2>&1) || fail "ListCategories failed"
+
+if echo "$LIST_CATS2_RESPONSE" | grep -q "Produce"; then
+  fail "Deleted category still in list"
+fi
+success "Category deletion verified"
+
+echo ""
+echo -e "${GREEN}USER STORY 4: PASSED${NC}"
+echo ""
+
+echo "=========================================="
 echo -e "${GREEN}ALL USER STORIES PASSED!${NC}"
 echo "=========================================="
 echo ""
@@ -316,5 +447,6 @@ echo "Test Summary:"
 echo "  - US1 (Authentication): Register, Login, GetMe, RefreshToken"
 echo "  - US2 (Groups): CreateGroup, ListMyGroups, InviteMember, AcceptInvite, ListMembers"
 echo "  - US3 (Lists/Items): CreateList, AddItem, TogglePurchased, UpdateItem, ReorderItems, DeleteItem, ArchiveList"
+echo "  - US4 (Categories): UpsertCategory (create/update), ListCategories, DeleteCategory, Item+Category assignment"
 echo ""
 echo "MVP is ready for demo/deployment!"
