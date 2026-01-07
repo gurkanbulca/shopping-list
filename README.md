@@ -1,49 +1,117 @@
 # Shopping List SaaS MVP
 
-Multi-tenant Shopping List SaaS with Go gRPC backend and iOS/Android mobile clients.
+Multi-tenant Shopping List SaaS with Go gRPC backend.
 
-## Architecture
-
-- **Backend**: Go 1.22+ with gRPC (protobuf)
-- **Database**: PostgreSQL
-- **Clients**: iOS + Android (offline-first, future)
-
-## Setup
+## Quick Start
 
 ### Prerequisites
 
-- Go 1.22 or later
-- PostgreSQL 14 or later
-- buf CLI (for protobuf code generation)
+- Go 1.22+
+- PostgreSQL 15+
+- Docker & Docker Compose (recommended)
+- grpcurl (for testing)
 
-### Installation
+### Option 1: Docker Compose (Recommended)
 
-1. Clone the repository
-2. Copy `.env.example` to `.env` and configure
-3. Setup database:
+```bash
+# Start PostgreSQL
+docker compose up -d postgres
+
+# Wait for database to be ready, then run migrations
+cat scripts/run-migrations.sql | docker compose exec -T postgres psql -U postgres -d shopping_list_dev
+
+# Build and run API
+cd api && go run cmd/server/main.go
+```
+
+### Option 2: Local Development
+
+1. Copy environment file:
    ```bash
-   createdb shopping_list_dev
+   cp .env.example .env
    ```
-4. Run migrations:
+
+2. Start PostgreSQL:
+   ```bash
+   docker run -d --name shopping-list-db \
+     -e POSTGRES_USER=postgres \
+     -e POSTGRES_PASSWORD=postgres \
+     -e POSTGRES_DB=shopping_list_dev \
+     -p 5432:5432 postgres:15-alpine
+   ```
+
+3. Run migrations:
+   ```bash
+   psql -h localhost -U postgres -d shopping_list_dev -f scripts/run-migrations.sql
+   ```
+
+4. Start the server:
    ```bash
    cd api
-   goose -dir migrations postgres "postgres://user:pass@localhost/shopping_list_dev?sslmode=disable" up
+   go run cmd/server/main.go
    ```
-5. Generate protobuf code:
-   ```bash
-   cd api/proto
-   buf generate
-   ```
-6. Install dependencies:
-   ```bash
-   cd api
-   go mod tidy
-   ```
-7. Run server:
-   ```bash
-   cd api/cmd/server
-   go run main.go
-   ```
+
+## Testing User Stories
+
+Run the automated test script (requires grpcurl):
+
+```bash
+# Install grpcurl if needed
+go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+
+# Run tests
+./scripts/test-user-stories.sh
+```
+
+### Manual Testing with grpcurl
+
+**User Story 1 - Authentication:**
+
+```bash
+# Register
+grpcurl -plaintext -d '{"email":"test@example.com","password":"Test1234","name":"Test User"}' \
+  localhost:50051 shopping.v1.AuthService/Register
+
+# Login
+grpcurl -plaintext -d '{"email":"test@example.com","password":"Test1234"}' \
+  localhost:50051 shopping.v1.AuthService/Login
+
+# Get Profile (replace TOKEN)
+grpcurl -plaintext -H "authorization: Bearer TOKEN" \
+  -d '{}' localhost:50051 shopping.v1.AuthService/GetMe
+```
+
+**User Story 2 - Groups:**
+
+```bash
+# Create Group
+grpcurl -plaintext -H "authorization: Bearer TOKEN" \
+  -d '{"name":"My Family","description":"Family shopping"}' \
+  localhost:50051 shopping.v1.GroupService/CreateGroup
+
+# List My Groups
+grpcurl -plaintext -H "authorization: Bearer TOKEN" \
+  -d '{}' localhost:50051 shopping.v1.GroupService/ListMyGroups
+```
+
+**User Story 3 - Lists & Items:**
+
+```bash
+# Create List
+grpcurl -plaintext -H "authorization: Bearer TOKEN" \
+  -d '{"groupId":"GROUP_ID","name":"Groceries"}' \
+  localhost:50051 shopping.v1.ListService/CreateList
+
+# Add Item
+grpcurl -plaintext -H "authorization: Bearer TOKEN" \
+  -d '{"listId":"LIST_ID","name":"Milk","priority":"ITEM_PRIORITY_HIGH","quantity":"2 gallons"}' \
+  localhost:50051 shopping.v1.ListService/AddItem
+
+# Toggle Purchased
+grpcurl -plaintext -H "authorization: Bearer TOKEN" \
+  -d '{"itemId":"ITEM_ID","isPurchased":true,"expectedVersion":1}' \
+  localhost:50051 shopping.v1.ListService/TogglePurchased
+```
 
 ## Project Structure
 
@@ -51,14 +119,41 @@ Multi-tenant Shopping List SaaS with Go gRPC backend and iOS/Android mobile clie
 api/
 ├── cmd/server/          # Application entry point
 ├── internal/
-│   ├── domain/         # Business logic
-│   ├── transport/      # gRPC handlers & interceptors
-│   ├── storage/        # Repository interfaces & implementations
-│   └── config/        # Configuration management
-├── pkg/                # Shared packages
-├── migrations/         # Database migrations
-└── proto/              # Protobuf definitions
+│   ├── config/          # Configuration management
+│   ├── domain/          # Business logic
+│   │   ├── auth/        # Authentication
+│   │   ├── group/       # Group management
+│   │   ├── list/        # Shopping lists
+│   │   ├── category/    # Categories
+│   │   └── sync/        # Offline sync
+│   ├── transport/       # gRPC handlers
+│   └── storage/         # Data access
+├── pkg/                 # Shared packages
+├── proto/               # Protobuf definitions
+└── migrations/          # Database migrations
+scripts/
+├── test-user-stories.sh # Automated test script
+└── run-migrations.sql   # Combined migrations
 ```
+
+## API Services
+
+| Service | Methods | Description |
+|---------|---------|-------------|
+| AuthService | Register, Login, RefreshToken, GetMe | User authentication |
+| GroupService | CreateGroup, ListMyGroups, InviteMember, AcceptInvite, ListMembers, UpdateMemberRole | Multi-tenant groups |
+| ListService | CreateList, ListLists, UpdateList, ArchiveList, AddItem, UpdateItem, DeleteItem, TogglePurchased, ReorderItems | Shopping lists & items |
+| CategoryService | UpsertCategory, ListCategories, DeleteCategory | Item categorization |
+| SyncService | GetDelta, PushMutations | Offline sync |
+
+## MVP Features
+
+- ✅ User registration & authentication (JWT)
+- ✅ Multi-tenant groups with role-based access
+- ✅ Shopping lists with CRUD operations
+- ✅ Items with priorities, quantities, notes
+- ✅ Version-based conflict detection
+- ✅ Pagination for all list operations
 
 ## Development
 
@@ -66,4 +161,4 @@ See `specs/001-shopping-list-mvp/quickstart.md` for detailed development guide.
 
 ## License
 
-[Add license information]
+MIT
