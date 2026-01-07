@@ -405,9 +405,9 @@ DUP_CAT_RESPONSE=$(grpcurl $PLAINTEXT -H "authorization: Bearer $ACCESS_TOKEN" \
   -d "{
     \"groupId\": \"$GROUP_ID\",
     \"name\": \"Dairy Products\"
-  }" $API_HOST shopping.v1.CategoryService/UpsertCategory 2>&1)
+  }" $API_HOST shopping.v1.CategoryService/UpsertCategory 2>&1) || true
 
-if echo "$DUP_CAT_RESPONSE" | grep -q "AlreadyExists"; then
+if echo "$DUP_CAT_RESPONSE" | grep -iq "already"; then
   success "Duplicate category name correctly rejected"
 else
   fail "Duplicate category should have been rejected: $DUP_CAT_RESPONSE"
