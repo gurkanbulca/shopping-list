@@ -20,6 +20,7 @@ import (
 	shoppingv1 "github.com/gurkanbulca/shopping-list/api/proto/shopping/v1"
 	"go.uber.org/zap"
 	googlegrpc "google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -101,6 +102,9 @@ func main() {
 	// TODO: Register other services
 	// shoppingv1.RegisterCategoryServiceServer(grpcServer, categoryHandler)
 	// shoppingv1.RegisterSyncServiceServer(grpcServer, syncHandler)
+
+	// Enable reflection for grpcurl and other tools
+	reflection.Register(grpcServer)
 
 	// Start server
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
