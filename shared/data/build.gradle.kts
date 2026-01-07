@@ -29,6 +29,7 @@ kotlin {
             implementation(project(":shared:domain"))
             implementation(project(":shared:db"))
             implementation(project(":shared:platform"))
+            implementation(project(":shared:sync"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
         }

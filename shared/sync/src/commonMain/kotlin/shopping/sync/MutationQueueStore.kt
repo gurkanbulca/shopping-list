@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.map
 import shopping.db.DbAccess
 import shopping.db.Mutation_queue
 import shopping.domain.model.*
+import shopping.domain.repo.MutationQueueRepository
+import shopping.domain.repo.MutationInput
 import shopping.data.mapper.toDomain
 import shopping.data.mapper.toDb
 import shopping.platform.Log
@@ -17,7 +19,7 @@ import shopping.platform.generateUuid
  */
 class MutationQueueStore(
     private val dbAccess: DbAccess
-) {
+) : MutationQueueRepository {
     companion object {
         private const val TAG = "MutationQueueStore"
         private const val DEFAULT_BATCH_SIZE = 50
@@ -41,7 +43,7 @@ class MutationQueueStore(
      * Enqueue a new mutation.
      * @return The mutation ID (used as idempotency key)
      */
-    suspend fun enqueue(
+    override suspend fun enqueue(
         entityType: EntityType,
         entityId: String,
         mutationType: MutationType,
@@ -74,8 +76,8 @@ class MutationQueueStore(
      * Enqueue a batch of mutations with a shared batch ID.
      * Used for atomic operations like reordering.
      */
-    suspend fun enqueueBatch(
-        mutations: List<MutationParams>
+    override suspend fun enqueueBatch(
+        mutations: List<MutationInput>
     ): String {
         val batchId = generateUuid()
         Log.d(TAG, "Enqueueing batch with ${mutations.size} mutations, batchId=$batchId")
@@ -171,13 +173,13 @@ class MutationQueueStore(
     /**
      * Get the count of pending mutations.
      */
-    suspend fun getPendingCount(): Int =
+    override suspend fun getPendingCount(): Int =
         dbAccess.countPendingMutations().toInt()
 
     /**
      * Check if there are any pending mutations.
      */
-    suspend fun hasPending(): Boolean =
+    override suspend fun hasPending(): Boolean =
         getPendingCount() > 0
 
     /**
@@ -189,26 +191,3 @@ class MutationQueueStore(
     }
 }
 
-/**
- * Parameters for creating a mutation.
- */
-data class MutationParams(
-    val entityType: EntityType,
-    val entityId: String,
-    val mutationType: MutationType,
-    val payload: ByteArray,
-    val expectedVersion: Long? = null
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-        other as MutationParams
-        return entityType == other.entityType && entityId == other.entityId
-    }
-
-    override fun hashCode(): Int {
-        var result = entityType.hashCode()
-        result = 31 * result + entityId.hashCode()
-        return result
-    }
-}

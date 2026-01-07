@@ -1,147 +1,112 @@
 import Foundation
+import GRPCCore
+import GRPCNIOTransportHTTP2
 
-/// gRPC adapter configuration for iOS.
-/// Provides channel management and metadata injection.
-struct GrpcConfig {
-    // TODO: Configure from environment or Info.plist
-    static var host: String = "localhost"
-    static var port: Int = 50051
-    static var useTLS: Bool = false
-    static var defaultTimeoutSeconds: TimeInterval = 10
-}
+// MARK: - Common Types
 
-/// Metadata keys for gRPC headers.
-enum GrpcMetadataKeys {
-    static let authorization = "authorization"
-    static let xRequestId = "x-request-id"
-    static let idempotencyKey = "idempotency-key"
-}
+/// Result type for gRPC operations
+typealias GrpcResult<T> = Result<T, GrpcError>
 
-/// Protocol for providing authentication tokens.
-protocol TokenProvider {
-    func getAccessToken() async -> String?
-}
-
-/// Creates standard metadata headers for gRPC calls.
-func createMetadata(
-    accessToken: String? = nil,
-    idempotencyKey: String? = nil
-) -> [String: String] {
-    var headers: [String: String] = [:]
-    
-    // Always add request ID for observability
-    headers[GrpcMetadataKeys.xRequestId] = UUID().uuidString
-    
-    // Add authorization if available
-    if let token = accessToken {
-        headers[GrpcMetadataKeys.authorization] = "Bearer \(token)"
-    }
-    
-    // Add idempotency key for mutations
-    if let key = idempotencyKey {
-        headers[GrpcMetadataKeys.idempotencyKey] = key
-    }
-    
-    return headers
-}
-
-/// Result type for gRPC operations.
-enum GrpcResult<T> {
-    case success(T)
-    case failure(GrpcError)
-    
-    var value: T? {
-        if case .success(let value) = self {
-            return value
-        }
-        return nil
-    }
-    
-    var error: GrpcError? {
-        if case .failure(let error) = self {
-            return error
-        }
-        return nil
-    }
-}
-
-/// Error types for gRPC operations.
-enum GrpcError: Error {
+/// gRPC error types mapped from server responses
+enum GrpcError: Error, Sendable {
     case unauthenticated(String)
     case permissionDenied(String)
     case notFound(String)
     case failedPrecondition(String)
     case unavailable(String)
     case deadlineExceeded(String)
+    case cancelled(String)
     case unknown(String)
     
     var message: String {
         switch self {
-        case .unauthenticated(let msg): return msg
-        case .permissionDenied(let msg): return msg
-        case .notFound(let msg): return msg
-        case .failedPrecondition(let msg): return msg
-        case .unavailable(let msg): return msg
-        case .deadlineExceeded(let msg): return msg
-        case .unknown(let msg): return msg
+        case .unauthenticated(let msg),
+             .permissionDenied(let msg),
+             .notFound(let msg),
+             .failedPrecondition(let msg),
+             .unavailable(let msg),
+             .deadlineExceeded(let msg),
+             .cancelled(let msg),
+             .unknown(let msg):
+            return msg
+        }
+    }
+    
+    var isRetryable: Bool {
+        switch self {
+        case .unavailable, .deadlineExceeded:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    var isAuthError: Bool {
+        switch self {
+        case .unauthenticated:
+            return true
+        default:
+            return false
         }
     }
 }
 
-/// Base class for gRPC adapters with common functionality.
-/// Subclasses implement specific service adapters.
-class BaseGrpcAdapter {
-    let tokenProvider: TokenProvider
+/// Protocol for providing authentication tokens
+protocol TokenProvider: Sendable {
+    func getAccessToken() async -> String?
+}
+
+// MARK: - Service Container
+
+/// Container for all gRPC services. Initialize once and share across the app.
+@available(iOS 18.0, macOS 15.0, *)
+final class GrpcServices: Sendable {
     
-    init(tokenProvider: TokenProvider) {
-        self.tokenProvider = tokenProvider
+    private let clientManager: GrpcClientManager
+    
+    /// Shared instance using default configuration
+    static let shared = GrpcServices()
+    
+    init(config: GrpcClientConfig = .default) {
+        self.clientManager = GrpcClientManager(config: config)
     }
     
-    /// Execute a gRPC call with standard headers and error handling.
-    func executeCall<T>(
-        idempotencyKey: String? = nil,
-        block: @escaping ([String: String]) async throws -> T
-    ) async -> GrpcResult<T> {
-        do {
-            let token = await tokenProvider.getAccessToken()
-            let metadata = createMetadata(
-                accessToken: token,
-                idempotencyKey: idempotencyKey
-            )
-            let result = try await block(metadata)
-            return .success(result)
-        } catch {
-            return .failure(mapError(error))
-        }
+    /// Set the token provider for authentication
+    func setTokenProvider(_ provider: TokenProvider) async {
+        await clientManager.setTokenProvider(provider)
     }
     
-    /// Map errors to GrpcError type.
-    private func mapError(_ error: Error) -> GrpcError {
-        // TODO: Map specific gRPC status codes
-        // For now, return unknown error
-        return .unknown(error.localizedDescription)
+    /// Get the auth remote data source
+    var auth: AuthRemoteDataSourceIos {
+        AuthRemoteDataSourceIos(clientManager: clientManager)
+    }
+    
+    /// Get the group remote data source
+    var groups: GroupRemoteDataSourceIos {
+        GroupRemoteDataSourceIos(clientManager: clientManager)
+    }
+    
+    /// Get the list remote data source
+    var lists: ListRemoteDataSourceIos {
+        ListRemoteDataSourceIos(clientManager: clientManager)
+    }
+    
+    /// Get the sync remote data source
+    var sync: SyncRemoteDataSourceIos {
+        SyncRemoteDataSourceIos(clientManager: clientManager)
+    }
+    
+    /// Shutdown all gRPC connections
+    func shutdown() async {
+        await clientManager.close()
     }
 }
 
-// MARK: - Placeholder Adapters
+// MARK: - GrpcClientManager Extension
 
-/// Placeholder for Auth gRPC adapter.
-/// Will be implemented with actual gRPC client.
-class AuthGrpcAdapter: BaseGrpcAdapter {
-    // TODO: Implement AuthService RPC methods
-}
-
-/// Placeholder for Group gRPC adapter.
-class GroupGrpcAdapter: BaseGrpcAdapter {
-    // TODO: Implement GroupService RPC methods
-}
-
-/// Placeholder for List gRPC adapter.
-class ListGrpcAdapter: BaseGrpcAdapter {
-    // TODO: Implement ListService RPC methods
-}
-
-/// Placeholder for Sync gRPC adapter.
-class SyncGrpcAdapter: BaseGrpcAdapter {
-    // TODO: Implement SyncService RPC methods
+@available(iOS 18.0, macOS 15.0, *)
+extension GrpcClientManager {
+    func setTokenProvider(_ provider: TokenProvider) {
+        self.tokenProvider = provider
+    }
 }

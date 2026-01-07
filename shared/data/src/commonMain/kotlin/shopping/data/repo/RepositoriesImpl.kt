@@ -200,7 +200,7 @@ class ListRepositoryImpl(
 
 class ItemRepositoryImpl(
     private val dbAccess: DbAccess,
-    private val mutationQueueStore: MutationQueueStore,
+    private val mutationQueueRepository: MutationQueueRepository,
     private val json: Json = Json { ignoreUnknownKeys = true }
 ) : ItemRepository {
 
@@ -230,7 +230,7 @@ class ItemRepositoryImpl(
         )).encodeToByteArray()
         
         // Enqueue mutation
-        val mutationId = mutationQueueStore.enqueue(
+        val mutationId = mutationQueueRepository.enqueue(
             entityType = EntityType.ITEM,
             entityId = itemId.value,
             mutationType = MutationType.CREATE,
@@ -272,7 +272,7 @@ class ItemRepositoryImpl(
         )).encodeToByteArray()
         
         // Enqueue mutation
-        val mutationId = mutationQueueStore.enqueue(
+        val mutationId = mutationQueueRepository.enqueue(
             entityType = EntityType.ITEM,
             entityId = itemId.value,
             mutationType = MutationType.UPDATE,
@@ -297,7 +297,7 @@ class ItemRepositoryImpl(
         Log.d(TAG, "Reordering ${itemIds.size} items in list ${listId.value}")
         
         val now = currentTimeMillis()
-        val mutations = mutableListOf<MutationParams>()
+        val mutations = mutableListOf<MutationInput>()
         
         // Create mutations for each item's new position
         for ((index, itemId) in itemIds.withIndex()) {
@@ -307,7 +307,7 @@ class ItemRepositoryImpl(
                 sortOrder = index
             )).encodeToByteArray()
             
-            mutations.add(MutationParams(
+            mutations.add(MutationInput(
                 entityType = EntityType.ITEM,
                 entityId = itemId.value,
                 mutationType = MutationType.UPDATE,
@@ -317,7 +317,7 @@ class ItemRepositoryImpl(
         }
         
         // Enqueue as a batch
-        val batchId = mutationQueueStore.enqueueBatch(mutations)
+        val batchId = mutationQueueRepository.enqueueBatch(mutations)
         
         // Optimistically update local DB
         for ((index, itemId) in itemIds.withIndex()) {
@@ -332,30 +332,6 @@ class ItemRepositoryImpl(
         return Result.success(Unit)
     }
 }
-
-/**
- * Mutation queue store interface (from sync module).
- */
-interface MutationQueueStore {
-    suspend fun enqueue(
-        entityType: EntityType,
-        entityId: String,
-        mutationType: MutationType,
-        payload: ByteArray,
-        expectedVersion: Long? = null,
-        batchId: String? = null
-    ): MutationId
-
-    suspend fun enqueueBatch(mutations: List<MutationParams>): String
-}
-
-data class MutationParams(
-    val entityType: EntityType,
-    val entityId: String,
-    val mutationType: MutationType,
-    val payload: ByteArray,
-    val expectedVersion: Long? = null
-)
 
 // ============================================
 // Category Repository Implementation

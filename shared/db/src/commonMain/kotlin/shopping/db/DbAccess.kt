@@ -265,6 +265,22 @@ class DbAccess(
     }
 
     // ============================================
+    // Cleanup Operations
+    // ============================================
+
+    suspend fun deleteAllMutations() = withContext(dispatcher) {
+        database.appDatabaseQueries.deleteAllMutations()
+    }
+
+    suspend fun deleteCategoriesByGroupId(groupId: String) = withContext(dispatcher) {
+        database.appDatabaseQueries.deleteCategoriesByGroupId(groupId)
+    }
+
+    suspend fun deleteItemsByListId(listId: String) = withContext(dispatcher) {
+        database.appDatabaseQueries.deleteItemsByListId(listId)
+    }
+
+    // ============================================
     // Transactions
     // ============================================
 
