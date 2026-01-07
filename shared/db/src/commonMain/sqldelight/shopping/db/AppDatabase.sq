@@ -1,0 +1,224 @@
+-- ============================================
+-- Groups
+-- ============================================
+
+CREATE TABLE groups (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    version INTEGER NOT NULL
+);
+
+selectAllGroups:
+SELECT * FROM groups ORDER BY name ASC;
+
+selectGroupById:
+SELECT * FROM groups WHERE id = ?;
+
+insertGroup:
+INSERT OR REPLACE INTO groups (id, name, created_at, updated_at, version)
+VALUES (?, ?, ?, ?, ?);
+
+deleteGroup:
+DELETE FROM groups WHERE id = ?;
+
+deleteAllGroups:
+DELETE FROM groups;
+
+-- ============================================
+-- Lists
+-- ============================================
+
+CREATE TABLE lists (
+    id TEXT PRIMARY KEY NOT NULL,
+    group_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    category_id TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    version INTEGER NOT NULL
+);
+
+CREATE INDEX idx_lists_group_id ON lists(group_id);
+
+selectListsByGroupId:
+SELECT * FROM lists WHERE group_id = ? ORDER BY name ASC;
+
+selectListById:
+SELECT * FROM lists WHERE id = ?;
+
+insertList:
+INSERT OR REPLACE INTO lists (id, group_id, name, category_id, created_at, updated_at, version)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteList:
+DELETE FROM lists WHERE id = ?;
+
+deleteListsByGroupId:
+DELETE FROM lists WHERE group_id = ?;
+
+-- ============================================
+-- Items
+-- ============================================
+
+CREATE TABLE items (
+    id TEXT PRIMARY KEY NOT NULL,
+    list_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    is_purchased INTEGER NOT NULL DEFAULT 0,
+    priority INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    category_id TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    version INTEGER NOT NULL,
+    pending_mutation_id TEXT
+);
+
+CREATE INDEX idx_items_list_id ON items(list_id);
+CREATE INDEX idx_items_sort ON items(list_id, is_purchased, priority DESC, sort_order);
+
+selectItemsByListId:
+SELECT * FROM items 
+WHERE list_id = ? 
+ORDER BY is_purchased ASC, priority DESC, sort_order ASC;
+
+selectItemById:
+SELECT * FROM items WHERE id = ?;
+
+insertItem:
+INSERT OR REPLACE INTO items (id, list_id, name, is_purchased, priority, sort_order, category_id, created_at, updated_at, version, pending_mutation_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateItemPurchased:
+UPDATE items SET is_purchased = ?, updated_at = ?, pending_mutation_id = ? WHERE id = ?;
+
+updateItemSortOrder:
+UPDATE items SET sort_order = ?, updated_at = ?, pending_mutation_id = ? WHERE id = ?;
+
+clearItemPendingMutation:
+UPDATE items SET pending_mutation_id = NULL WHERE pending_mutation_id = ?;
+
+deleteItem:
+DELETE FROM items WHERE id = ?;
+
+deleteItemsByListId:
+DELETE FROM items WHERE list_id = ?;
+
+getMaxSortOrder:
+SELECT MAX(sort_order) FROM items WHERE list_id = ?;
+
+-- ============================================
+-- Categories
+-- ============================================
+
+CREATE TABLE categories (
+    id TEXT PRIMARY KEY NOT NULL,
+    group_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    color TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    version INTEGER NOT NULL
+);
+
+CREATE INDEX idx_categories_group_id ON categories(group_id);
+
+selectCategoriesByGroupId:
+SELECT * FROM categories WHERE group_id = ? ORDER BY name ASC;
+
+selectCategoryById:
+SELECT * FROM categories WHERE id = ?;
+
+insertCategory:
+INSERT OR REPLACE INTO categories (id, group_id, name, color, created_at, updated_at, version)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteCategory:
+DELETE FROM categories WHERE id = ?;
+
+deleteCategoriesByGroupId:
+DELETE FROM categories WHERE group_id = ?;
+
+-- ============================================
+-- Mutation Queue
+-- ============================================
+
+CREATE TABLE mutation_queue (
+    id TEXT PRIMARY KEY NOT NULL,
+    batch_id TEXT,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    mutation_type TEXT NOT NULL,
+    payload BLOB NOT NULL,
+    expected_version INTEGER,
+    status TEXT NOT NULL DEFAULT 'pending',
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    claimed_at INTEGER
+);
+
+CREATE INDEX idx_mutation_queue_status ON mutation_queue(status, created_at);
+CREATE INDEX idx_mutation_queue_batch ON mutation_queue(batch_id);
+
+selectPendingMutations:
+SELECT * FROM mutation_queue 
+WHERE status = 'pending' 
+ORDER BY created_at ASC
+LIMIT ?;
+
+selectMutationsByBatchId:
+SELECT * FROM mutation_queue WHERE batch_id = ? ORDER BY created_at ASC;
+
+selectMutationById:
+SELECT * FROM mutation_queue WHERE id = ?;
+
+insertMutation:
+INSERT INTO mutation_queue (id, batch_id, entity_type, entity_id, mutation_type, payload, expected_version, status, retry_count, created_at, claimed_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+claimMutations:
+UPDATE mutation_queue SET status = 'sending', claimed_at = ? WHERE status = 'pending' AND id IN ?;
+
+markMutationSuccess:
+DELETE FROM mutation_queue WHERE id = ?;
+
+markMutationFailed:
+UPDATE mutation_queue SET status = 'failed', retry_count = retry_count + 1 WHERE id = ?;
+
+resetFailedMutation:
+UPDATE mutation_queue SET status = 'pending', claimed_at = NULL WHERE id = ?;
+
+countPendingMutations:
+SELECT COUNT(*) FROM mutation_queue WHERE status = 'pending';
+
+deleteAllMutations:
+DELETE FROM mutation_queue;
+
+-- ============================================
+-- Sync State
+-- ============================================
+
+CREATE TABLE sync_state (
+    group_id TEXT PRIMARY KEY NOT NULL,
+    cursor INTEGER NOT NULL DEFAULT 0,
+    last_sync_at INTEGER,
+    last_error TEXT
+);
+
+selectSyncStateByGroupId:
+SELECT * FROM sync_state WHERE group_id = ?;
+
+insertOrUpdateSyncState:
+INSERT OR REPLACE INTO sync_state (group_id, cursor, last_sync_at, last_error)
+VALUES (?, ?, ?, ?);
+
+updateSyncCursor:
+UPDATE sync_state SET cursor = ?, last_sync_at = ?, last_error = NULL WHERE group_id = ?;
+
+updateSyncError:
+UPDATE sync_state SET last_error = ? WHERE group_id = ?;
+
+deleteSyncStateByGroupId:
+DELETE FROM sync_state WHERE group_id = ?;

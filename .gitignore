@@ -62,3 +62,58 @@ buf.lock
 # Temporary files
 tmp/
 temp/
+
+# ============================================
+# Kotlin Multiplatform / Android / iOS
+# ============================================
+
+# Gradle
+.gradle/
+**/build/
+!src/**/build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# Kotlin
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Android
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+captures/
+.externalNativeBuild/
+.cxx/
+
+# iOS
+*.xcuserdata/
+*.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+Pods/
+Podfile.lock
+
+# SQLDelight
+**/sqldelight/*/output/
