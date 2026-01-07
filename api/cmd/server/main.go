@@ -14,6 +14,7 @@ import (
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/category"
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/group"
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/list"
+	"github.com/gurkanbulca/shopping-list/api/internal/domain/sync"
 	"github.com/gurkanbulca/shopping-list/api/internal/storage/postgres"
 	"github.com/gurkanbulca/shopping-list/api/internal/transport/grpc"
 	"github.com/gurkanbulca/shopping-list/api/internal/transport/interceptors"
@@ -74,18 +75,21 @@ func main() {
 	listRepo := postgres.NewListRepository(db)
 	itemRepo := postgres.NewItemRepository(db)
 	categoryRepo := postgres.NewCategoryRepository(db)
+	syncRepo := postgres.NewSyncRepository(db)
 
 	// Setup services
 	authService := auth.NewService(userRepo, tokenManager, logger)
 	groupService := group.NewService(groupRepo, memberRepo, userLookupRepo, logger)
 	listService := list.NewService(listRepo, itemRepo, groupService, logger)
 	categoryService := category.NewService(categoryRepo, groupService, logger)
+	syncService := sync.NewService(syncRepo, groupService, logger)
 
 	// Setup gRPC handlers
 	authHandler := grpc.NewAuthHandler(authService)
 	groupHandler := grpc.NewGroupHandler(groupService)
 	listHandler := grpc.NewListHandler(listService)
 	categoryHandler := grpc.NewCategoryHandler(categoryService)
+	syncHandler := grpc.NewSyncHandler(syncService)
 
 	// Setup gRPC server with interceptors
 	grpcServer := googlegrpc.NewServer(
@@ -104,8 +108,7 @@ func main() {
 	shoppingv1.RegisterGroupServiceServer(grpcServer, groupHandler)
 	shoppingv1.RegisterListServiceServer(grpcServer, listHandler)
 	shoppingv1.RegisterCategoryServiceServer(grpcServer, categoryHandler)
-	// TODO: Register SyncService
-	// shoppingv1.RegisterSyncServiceServer(grpcServer, syncHandler)
+	shoppingv1.RegisterSyncServiceServer(grpcServer, syncHandler)
 
 	// Enable reflection for grpcurl and other tools
 	reflection.Register(grpcServer)

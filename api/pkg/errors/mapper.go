@@ -7,6 +7,7 @@ import (
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/category"
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/group"
 	"github.com/gurkanbulca/shopping-list/api/internal/domain/list"
+	"github.com/gurkanbulca/shopping-list/api/internal/domain/sync"
 	"github.com/gurkanbulca/shopping-list/api/pkg/validation"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -130,6 +131,27 @@ func ToGRPCError(err error) error {
 
 	case errors.Is(err, category.ErrInvalidCategoryName):
 		return status.Error(codes.InvalidArgument, "category name must be 1-50 characters")
+	}
+
+	// Sync domain errors
+	switch {
+	case errors.Is(err, sync.ErrNotGroupMember):
+		return status.Error(codes.PermissionDenied, "user is not a member of this group")
+
+	case errors.Is(err, sync.ErrVersionMismatch):
+		return status.Error(codes.FailedPrecondition, "version mismatch - entity was modified by another user")
+
+	case errors.Is(err, sync.ErrInvalidMutation):
+		return status.Error(codes.InvalidArgument, "invalid mutation data")
+
+	case errors.Is(err, sync.ErrInvalidEntityType):
+		return status.Error(codes.InvalidArgument, "invalid entity type")
+
+	case errors.Is(err, sync.ErrEntityNotFound):
+		return status.Error(codes.NotFound, "entity not found")
+
+	case errors.Is(err, sync.ErrInvalidMutationType):
+		return status.Error(codes.InvalidArgument, "invalid mutation type")
 	}
 
 	// Validation errors

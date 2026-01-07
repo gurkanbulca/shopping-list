@@ -243,26 +243,26 @@
 
 ### Implementation for User Story 5
 
-- [ ] T148 [P] [US5] Create mutation_log table migration (optional) in api/migrations/00007_create_mutation_log.sql
-- [ ] T149 [US5] Implement SyncRepository interface methods in api/internal/storage/repositories/sync_repo.go
-- [ ] T150 [US5] Implement SyncRepository PostgreSQL implementation in api/internal/storage/postgres/sync_repo.go
-- [ ] T151 [US5] Create SQL queries for delta sync (GetDelta) in api/internal/storage/postgres/queries/sync.sql (if using sqlc)
-- [ ] T152 [US5] Implement cursor-based delta query using sequence or updated_at in api/internal/storage/postgres/queries/sync.sql
-- [ ] T153 [US5] Implement SyncService domain logic in api/internal/domain/sync/service.go
-- [ ] T154 [US5] Implement GetDelta use case (pull server changes) in api/internal/domain/sync/get_delta.go
-- [ ] T155 [US5] Implement PushMutations use case (push client changes) in api/internal/domain/sync/push_mutations.go
-- [ ] T156 [US5] Implement mutation processing with idempotency check in api/internal/domain/sync/mutation_processor.go
-- [ ] T157 [US5] Implement version conflict detection in PushMutations in api/internal/domain/sync/push_mutations.go
-- [ ] T158 [US5] Implement batch mutation handling in api/internal/domain/sync/push_mutations.go
-- [ ] T159 [US5] Implement SyncService gRPC handler in api/internal/transport/grpc/sync_handler.go
-- [ ] T160 [US5] Implement GetDelta RPC handler in api/internal/transport/grpc/sync_handler.go
-- [ ] T161 [US5] Implement PushMutations RPC handler in api/internal/transport/grpc/sync_handler.go
-- [ ] T162 [US5] Register SyncService with gRPC server in api/cmd/server/main.go
-- [ ] T163 [US5] Add authorization checks (verify user is group member) in api/internal/transport/grpc/sync_handler.go
-- [ ] T164 [US5] Add input validation for sync operations in api/pkg/validation/sync.go
-- [ ] T165 [US5] Add error handling for version conflicts (FailedPrecondition) in api/internal/domain/sync/push_mutations.go
-- [ ] T166 [US5] Add error handling for invalid mutations in api/internal/domain/sync/mutation_processor.go
-- [ ] T167 [US5] Add logging for sync operations in api/internal/domain/sync/service.go
+- [x] T148 [P] [US5] Create mutation_log table migration (optional) in api/migrations/00007_create_mutation_log.sql
+- [x] T149 [US5] Implement SyncRepository interface methods in api/internal/storage/repositories/sync_repo.go
+- [x] T150 [US5] Implement SyncRepository PostgreSQL implementation in api/internal/storage/postgres/sync_repo.go
+- [x] T151 [US5] Create SQL queries for delta sync (GetDelta) in api/internal/storage/postgres/queries/sync.sql (if using sqlc)
+- [x] T152 [US5] Implement cursor-based delta query using sequence or updated_at in api/internal/storage/postgres/queries/sync.sql
+- [x] T153 [US5] Implement SyncService domain logic in api/internal/domain/sync/service.go
+- [x] T154 [US5] Implement GetDelta use case (pull server changes) in api/internal/domain/sync/get_delta.go
+- [x] T155 [US5] Implement PushMutations use case (push client changes) in api/internal/domain/sync/push_mutations.go
+- [x] T156 [US5] Implement mutation processing with idempotency check in api/internal/domain/sync/mutation_processor.go
+- [x] T157 [US5] Implement version conflict detection in PushMutations in api/internal/domain/sync/push_mutations.go
+- [x] T158 [US5] Implement batch mutation handling in api/internal/domain/sync/push_mutations.go
+- [x] T159 [US5] Implement SyncService gRPC handler in api/internal/transport/grpc/sync_handler.go
+- [x] T160 [US5] Implement GetDelta RPC handler in api/internal/transport/grpc/sync_handler.go
+- [x] T161 [US5] Implement PushMutations RPC handler in api/internal/transport/grpc/sync_handler.go
+- [x] T162 [US5] Register SyncService with gRPC server in api/cmd/server/main.go
+- [x] T163 [US5] Add authorization checks (verify user is group member) in api/internal/transport/grpc/sync_handler.go
+- [x] T164 [US5] Add input validation for sync operations in api/pkg/validation/sync.go
+- [x] T165 [US5] Add error handling for version conflicts (FailedPrecondition) in api/internal/domain/sync/push_mutations.go
+- [x] T166 [US5] Add error handling for invalid mutations in api/internal/domain/sync/mutation_processor.go
+- [x] T167 [US5] Add logging for sync operations in api/internal/domain/sync/service.go
 
 **Checkpoint**: At this point, all user stories should work independently. Users can sync offline changes and handle conflicts.
 
