@@ -272,24 +272,24 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T168 [P] Add rate limiting for Auth RPCs in api/internal/transport/interceptors/rate_limit.go
-- [ ] T169 [P] Implement PII/token masking in logging interceptor in api/internal/transport/interceptors/logging.go
-- [ ] T170 [P] Add request ID propagation to all handlers in api/internal/transport/grpc/
-- [ ] T171 [P] Add OpenTelemetry tracing to all RPC handlers in api/internal/transport/grpc/
-- [ ] T172 [P] Add metrics collection (request count, error rate, latency p95) in api/internal/transport/interceptors/metrics.go
-- [ ] T173 [P] Configure gRPC server reflection (dev only) in api/cmd/server/main.go
-- [ ] T174 [P] Add comprehensive error messages for all error cases in api/pkg/errors/mapper.go
-- [ ] T175 [P] Add input validation for all RPC requests in api/pkg/validation/
-- [ ] T176 [P] Add logging for all domain operations in api/internal/domain/
-- [ ] T177 [P] Update README.md with API usage examples
-- [ ] T178 [P] Create API documentation from proto files
-- [ ] T179 [P] Add Dockerfile for containerized deployment
-- [ ] T180 [P] Add docker-compose.yml for local development
-- [ ] T181 [P] Add CI/CD configuration for lint, test, migration check
-- [ ] T182 [P] Run quickstart.md validation and update if needed
-- [ ] T183 Code cleanup and refactoring across all modules
-- [ ] T184 Performance optimization (query optimization, connection pooling)
-- [ ] T185 Security audit (SQL injection prevention, input sanitization)
+- [x] T168 [P] Add rate limiting for Auth RPCs in api/internal/transport/interceptors/rate_limit.go
+- [x] T169 [P] Implement PII/token masking in logging interceptor in api/internal/transport/interceptors/logging.go
+- [x] T170 [P] Add request ID propagation to all handlers in api/internal/transport/grpc/
+- [x] T171 [P] Add OpenTelemetry tracing to all RPC handlers in api/internal/transport/grpc/
+- [x] T172 [P] Add metrics collection (request count, error rate, latency p95) in api/internal/transport/interceptors/metrics.go
+- [x] T173 [P] Configure gRPC server reflection (dev only) in api/cmd/server/main.go
+- [x] T174 [P] Add comprehensive error messages for all error cases in api/pkg/errors/mapper.go
+- [x] T175 [P] Add input validation for all RPC requests in api/pkg/validation/
+- [x] T176 [P] Add logging for all domain operations in api/internal/domain/
+- [x] T177 [P] Update README.md with API usage examples
+- [x] T178 [P] Create API documentation from proto files
+- [x] T179 [P] Add Dockerfile for containerized deployment
+- [x] T180 [P] Add docker-compose.yml for local development
+- [x] T181 [P] Add CI/CD configuration for lint, test, migration check
+- [x] T182 [P] Run quickstart.md validation and update if needed
+- [x] T183 Code cleanup and refactoring across all modules
+- [x] T184 Performance optimization (query optimization, connection pooling)
+- [x] T185 Security audit (SQL injection prevention, input sanitization)
 
 ---
 

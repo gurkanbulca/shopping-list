@@ -91,10 +91,14 @@ func main() {
 	categoryHandler := grpc.NewCategoryHandler(categoryService)
 	syncHandler := grpc.NewSyncHandler(syncService)
 
+	// Setup rate limiter with stricter limits for auth endpoints
+	rateLimitConfig := interceptors.DefaultRateLimitConfig()
+
 	// Setup gRPC server with interceptors
 	grpcServer := googlegrpc.NewServer(
 		googlegrpc.UnaryInterceptor(interceptors.RequestIDInterceptor),
 		googlegrpc.ChainUnaryInterceptor(
+			interceptors.RateLimitInterceptor(rateLimitConfig),
 			interceptors.LoggingInterceptor(logger),
 			interceptors.AuthInterceptorWithTokenManager(tokenManager),
 			interceptors.AuthorizationInterceptor(),
@@ -110,8 +114,11 @@ func main() {
 	shoppingv1.RegisterCategoryServiceServer(grpcServer, categoryHandler)
 	shoppingv1.RegisterSyncServiceServer(grpcServer, syncHandler)
 
-	// Enable reflection for grpcurl and other tools
-	reflection.Register(grpcServer)
+	// Enable reflection for grpcurl and other tools (dev only)
+	if cfg.Environment == "development" || cfg.Environment == "dev" || cfg.Environment == "" {
+		reflection.Register(grpcServer)
+		logger.Info("gRPC reflection enabled (development mode)")
+	}
 
 	// Start server
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)

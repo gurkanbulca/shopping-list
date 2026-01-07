@@ -1,0 +1,51 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+dist/
+build/
+bin/
+
+# Test artifacts
+coverage.out
+coverage.html
+
+# Documentation
+*.md
+docs/
+
+# Specs
+specs/
+
+# Tests (not needed in production container)
+tests/
+
+# Development files
+docker-compose*.yml
+Makefile
+
+# Temporary files
+tmp/
+temp/
+*.tmp

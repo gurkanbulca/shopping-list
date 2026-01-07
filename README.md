@@ -155,9 +155,62 @@ scripts/
 - ✅ Version-based conflict detection
 - ✅ Pagination for all list operations
 
+## API Documentation
+
+See [docs/API.md](docs/API.md) for complete API reference including:
+- All service methods and request/response formats
+- Authentication flow and token management
+- Error codes and handling
+- Pagination patterns
+- Rate limiting details
+
 ## Development
 
 See `specs/001-shopping-list-mvp/quickstart.md` for detailed development guide.
+
+### Running Tests
+
+```bash
+# Unit tests
+cd api && go test ./...
+
+# With coverage
+cd api && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
+```
+
+### Building Docker Image
+
+```bash
+cd api
+docker build -t shopping-list-api:latest .
+```
+
+### Linting
+
+```bash
+# Go linting
+cd api && golangci-lint run
+
+# Protobuf linting
+cd api/proto && buf lint
+```
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENVIRONMENT` | `development` | Environment (development/staging/production) |
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_USER` | `postgres` | Database user |
+| `DB_PASSWORD` | `postgres` | Database password |
+| `DB_NAME` | `shopping_list_dev` | Database name |
+| `JWT_SECRET` | - | JWT signing secret (change in production!) |
+| `JWT_ACCESS_EXPIRY` | `15m` | Access token expiry |
+| `JWT_REFRESH_EXPIRY` | `7d` | Refresh token expiry |
+| `GRPC_PORT` | `50051` | gRPC server port |
+| `LOG_LEVEL` | `info` | Log level (debug/info/warn/error) |
+| `OTEL_ENDPOINT` | - | OpenTelemetry collector endpoint |
 
 ## License
 

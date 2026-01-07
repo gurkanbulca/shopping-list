@@ -22,6 +22,7 @@ services:
       dockerfile: Dockerfile
     container_name: shopping-list-api
     environment:
+      ENVIRONMENT: development
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USER: postgres
@@ -33,6 +34,7 @@ services:
       JWT_REFRESH_EXPIRY: 168h
       GRPC_PORT: "50051"
       LOG_LEVEL: debug
+      OTEL_ENDPOINT: ""
     ports:
       - "50051:50051"
     depends_on:

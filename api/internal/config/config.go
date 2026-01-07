@@ -10,6 +10,9 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
+	// Environment
+	Environment string // "development", "staging", "production"
+
 	// Database
 	DBHost     string
 	DBPort     string
@@ -35,6 +38,7 @@ type Config struct {
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
 	cfg := &Config{
+		Environment:      getEnv("ENVIRONMENT", "development"),
 		DBHost:           getEnv("DB_HOST", "localhost"),
 		DBPort:           getEnv("DB_PORT", "5432"),
 		DBUser:           getEnv("DB_USER", "postgres"),
