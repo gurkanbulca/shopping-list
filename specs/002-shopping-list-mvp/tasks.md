@@ -78,17 +78,17 @@
 - [X] T048 [US1] Implement observe items usecase (read from DB only, apply sorting rules) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/shared/domain/src/commonMain/kotlin/shopping/domain/usecase/ObserveItemsUseCase.kt`)
 - [X] T049 [US1] Handle PermissionDenied by clearing group-scoped local data + surfacing error (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/shared/data/src/commonMain/kotlin/shopping/data/policy/TenantBoundaryPolicy.kt`)
 
-- [ ] T050 [P] [US1] Android Compose: Login screen (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/LoginScreen.kt`)
-- [ ] T051 [P] [US1] Android Compose: Groups screen (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/GroupsScreen.kt`)
-- [ ] T052 [P] [US1] Android Compose: Lists screen (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/ListsScreen.kt`)
-- [ ] T053 [P] [US1] Android Compose: Items screen (read-only list for US1) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/ItemsScreen.kt`)
-- [ ] T054 [US1] Android Navigation wiring (login → groups → lists → items) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/NavGraph.kt`)
-- [ ] T055 [P] [US1] iOS SwiftUI: Login view (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/LoginView.swift`)
-- [ ] T056 [P] [US1] iOS SwiftUI: Groups view (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/GroupsView.swift`)
-- [ ] T057 [P] [US1] iOS SwiftUI: Lists view (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/ListsView.swift`)
-- [ ] T058 [P] [US1] iOS SwiftUI: Items view (read-only list for US1) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/ItemsView.swift`)
-- [ ] T059 [US1] iOS NavigationStack wiring (login → groups → lists → items) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/NavRoot.swift`)
-- [ ] T060 [US1] Bridge shared Flow → SwiftUI observable wrapper (minimal) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/FlowBridge.swift`)
+- [X] T050 [P] [US1] Android Compose: Login screen (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/LoginScreen.kt`)
+- [X] T051 [P] [US1] Android Compose: Groups screen (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/GroupsScreen.kt`)
+- [X] T052 [P] [US1] Android Compose: Lists screen (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/ListsScreen.kt`)
+- [X] T053 [P] [US1] Android Compose: Items screen (read-only list for US1) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/ItemsScreen.kt`)
+- [X] T054 [US1] Android Navigation wiring (login → groups → lists → items) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/androidApp/src/main/java/shopping/android/ui/NavGraph.kt`)
+- [X] T055 [P] [US1] iOS SwiftUI: Login view (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/LoginView.swift`)
+- [X] T056 [P] [US1] iOS SwiftUI: Groups view (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/GroupsView.swift`)
+- [X] T057 [P] [US1] iOS SwiftUI: Lists view (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/ListsView.swift`)
+- [X] T058 [P] [US1] iOS SwiftUI: Items view (read-only list for US1) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/ItemsView.swift`)
+- [X] T059 [US1] iOS NavigationStack wiring (login → groups → lists → items) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/NavRoot.swift`)
+- [X] T060 [US1] Bridge shared Flow → SwiftUI observable wrapper (minimal) (`/home/hichlich/workspace/github.com/gurkanbulca/shopping-list/iosApp/ShoppingListApp/FlowBridge.swift`)
 
 **Checkpoint**: US1 works end-to-end and is independently testable.
 
